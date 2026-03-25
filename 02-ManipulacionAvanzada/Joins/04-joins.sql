@@ -131,4 +131,56 @@ RIGHT JOIN Producto AS P
 ON C.CategoryID = P.Catego_id
 WHERE C.CategoryID IS NULL
 
--- Guardar en una tabla de productos nuevos todos aquellos productos que fueron agregados recientemente y no están 
+-- Guardar en una tabla de productos nuevos todos aquellos productos que 
+-- fueron agregados recientemente y no están en esta tabla de apoyo
+
+-- Crear la tabla products_new a partir de Products mediante una consulta
+
+SELECT TOP 0
+	ProductID AS [Product_Number], 
+	ProductName AS [Product_Name],
+	UnitPrice AS [Unit_Price],
+	UnitsInStock AS [Stock],
+	(UnitPrice * UnitsInStock) AS [Total]
+INTO Products_new
+FROM Products
+
+ALTER TABLE Products_new
+ADD CONSTRAINT pk_Products_new
+PRIMARY KEY ([Product_Number]);
+
+SELECT 
+	P.ProductID, 
+	P.ProductName, 
+	P.UnitPrice, 
+	P.UnitsInStock,
+	(P.UnitPrice * P.UnitsInStock) AS TOTAL,
+	PW.*
+FROM Products AS P
+LEFT JOIN Products_new AS PW
+ON P.ProductID = PW.Product_Number
+
+INSERT INTO Products_new
+SELECT 
+	P.ProductName, 
+	P.UnitPrice, 
+	P.UnitsInStock,
+	(P.UnitPrice * P.UnitsInStock) AS TOTAL
+FROM Products AS P
+LEFT JOIN Products_new AS PW
+ON P.ProductID = PW.Product_Number
+WHERE PW.Product_Number IS NULL;
+
+INSERT INTO Products_new
+SELECT 
+	P.ProductName, 
+	P.UnitPrice, 
+	P.UnitsInStock,
+	(P.UnitPrice * P.UnitsInStock) AS TOTAL
+FROM Products AS P
+LEFT JOIN Products_new AS PW
+ON P.ProductID = PW.Product_Number
+WHERE PW.Product_Number IS NULL;
+
+SELECT *
+FROM Products_new
