@@ -293,8 +293,6 @@ EXEC spu_Evaluar_Calificacion 65;
 
 -- CASE dentro de un select caso real
 
-USE NORTHWND;
-
 CREATE TABLE bdstored.dbo.Productos
 (
     nombre VARCHAR(50),
@@ -319,6 +317,7 @@ SELECT
         ELSE 'Barato'
     END AS [Categoria]
 FROM bdstored.dbo.Productos;
+GO
 
 -- SELECCIONA LOS CLIENTES CON SU NOMBRE, PAÍS, CIUDAD Y REGIÓN (LOS VALORES NULOS VISUALIZALOS CON LA LEYENDA 'SIN REGIÓN', ADEMÁS, QUIERO QUE 
 -- QUE TODO EL RESULTADO ESTÉ EN MAYÚSCULAS)
