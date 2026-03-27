@@ -74,6 +74,7 @@ CREATE OR ALTER PROC usp_agregar_venta
 AS
 BEGIN
 	BEGIN TRY
+	BEGIN TRANSACTION
 		IF EXISTS 
 			(SELECT 1 
 			FROM CatCliente
@@ -86,7 +87,6 @@ BEGIN
 					BEGIN
 						IF @cantidad_vendida <= (SELECT Existencia FROM CatProducto WHERE Id_Producto = @id_producto)
 							BEGIN
-								BEGIN TRANSACTION
 									INSERT INTO TblVenta (Id_Cliente)
 										VALUES (@id_cliente)
 									INSERT INTO TblDetalleVenta
@@ -96,9 +96,6 @@ BEGIN
 											(SELECT Precio FROM CatProducto WHERE Id_Producto = @id_producto),
 											@cantidad_vendida
 											)
-											UPDATE TblDetalleVenta
-											SET Precio_venta = Precio_venta * @cantidad_vendida
-											WHERE Id_Producto = @id_producto
 									UPDATE CatProducto
 										SET Existencia = Existencia - @cantidad_vendida
 										WHERE Id_Producto = @id_producto
@@ -106,29 +103,29 @@ BEGIN
 							END
 						ELSE
 						BEGIN
-						PRINT 'ERROR: LA CANTIDAD VENDIDA SUPERA AL STOCK. ';
+						;THROW 50001, 'LA CANTIDAD VENDIDA SUPERA AL STOCK. ', 1;
 						END
 					END
 				ELSE
 				BEGIN
-					PRINT 'ERROR: EL PRODUCTO NO EXISTE. ';
+					;THROW 50002, 'ERROR: EL PRODUCTO NO EXISTE. ', 1;
 				END
 			END
 		ELSE
 		BEGIN
-			PRINT 'ERROR: EL CLIENTE NO EXISTE.';
+			;THROW 50003, 'ERROR: EL CLIENTE NO EXISTE. ', 1;
 		END
 	END TRY
 	BEGIN CATCH
 		IF @@TRANCOUNT > 0
 			BEGIN
 				ROLLBACK;
+				PRINT 'TRANSACCIÓN NO LOGRADA. ' + ERROR_MESSAGE();
 			END
-			PRINT 'ERROR: ' + ERROR_MESSAGE();
 	END CATCH
 END;
 
-EXEC usp_agregar_venta 'ALFKI', 1, 10
+EXEC usp_agregar_venta 'ALFKI', 1, 1
 
 SELECT *
 FROM CatCliente
